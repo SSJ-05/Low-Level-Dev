@@ -1,0 +1,63 @@
+/*
+NOTEs:
+1. Alignment requirement    — payload must be 16-byte aligned on x86-64
+2. Minimum block size       — header + footer + min payload
+3. Block splitting          — only split if remainder ≥ MIN_BLOCK_SIZE
+4. Sentinel blocks          — prologue/epilogue eliminate boundary checks
+5. Internal fragmentation   — caused by alignment + header overhead
+
+malloc package decisions:
+1. Free block tracking     → implicit / explicit / segregated
+2. Placement policy        → first fit / next fit / best fit
+3. Splitting policy        → split if remainder ≥ MIN_BLOCK_SIZE
+4. Coalescing policy       → immediate (Stage 1) / deferred (Stage 3+)
+
+Data structures:
+- Header: size | alloc_bit (own block)
+- Footer: size | alloc_bit (own block — mirror of header)
+- Prologue: permanent allocated block at heap start
+- Epilogue: permanent allocated block at heap end
+
+Memory from kernel:
+- mmap() — not sbrk()
+- extend when no fit found
+- munmap large blocks on free
+
+    - need error handling free func that returns explicit error messages when things go wrong
+    - no undefined behavior on negative increment
+    - padding alignment to 64 bit
+    - external fragmentation problem : heuristics that maintain small number of large free blocks rather large number of small free blocks
+    - NEEDS TO BE A BALANCE B/W THROUGHPUT AND MEMORY UTILIZATION :                   _
+      -- keep track of free blocks                                                     |
+      -- which free block to choose based on size of new allocation request            |    DECISIONS ... DECISIONS ...
+      -- what to do with remaining free block after placement                          |
+      -- what to do with block that is recently freed                                 _|
+   
+    - implicit free lists : find free blocks by walking entire heap sequentially
+        -- header contains (size + allocated bit) 
+        -- footer contains same info has header
+    - explicit free lists - doubly linked lists - only free blocks linked together - ordering of lists LIFO
+    - intrusive lists - obj itself contain list ptrs
+    - segregated lists - multiple free lists categorized by size class
+
+    - PLACEMENT POLICY : first fit, next fit, best fit
+    - SPLITTING POLICY : should work with Placement Policy to utilize free blocks
+
+    - Getting additional heap memory from kernel ( mmap not sbrk ) 
+    - COALESCING POLICY : immediate (thrashing) or deferred (preferred)
+
+    
+    - PROLOGUE AND EPILOGUE BLOCKS : trick to eliminate edge cases
+    Heap layout after init:
+
+[PADDING][PROLOGUE_HDR][PROLOGUE_FTR][...free blocks...][EPILOGUE_HDR]
+                                      |
+                                 heap_start
+
+PROLOGUE  - allocated block, size 8, never freed
+            eliminates "is there a previous block" check
+
+EPILOGUE  - allocated block, size 0
+            signals end of heap
+            eliminates "is there a next block" check
+*/
