@@ -24,6 +24,21 @@ namespace zerok {
         constexpr std::uint64_t HEAP_MAX        { 1ull << 30 };   // 1GB size limit of Heap
     }   // namespace config
 
+
+    // ***** Heap Stats struct *****
+    struct HeapStats {
+        std::uint8_t* start     { nullptr };
+        std::uint8_t* end       { nullptr };
+        std::uint64_t capacity  { 0 };
+        std::uint64_t used      { 0 };
+
+        HeapStats                               = default;
+        HeapStats (const HeapStats&)            = delete;
+        HeapStats& operator=(const HeapStats&)  = delete;
+        HeapStats (HeapStats&&)                 = delete;
+        HeapStats& operator=(HeapStats&&)       = delete;
+    };    // struct HeapStats
+
     class zmalloc;
     class zfree;
 
