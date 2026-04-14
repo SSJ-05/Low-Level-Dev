@@ -100,4 +100,25 @@ namespace zerok {
     }
 
 
+
+    // single instance malloc class
+    class ZMalloc {
+        HeapStats heap_;
+
+        void* extend_heap (std::uint64_t size) noexcept;
+        void* find_first_fit (std::uint64_t size) noexcept;
+        void  place_block (void* bptr, std::uint64_t size) noexcept;
+        void* coalesce (void* bptr) noexcept;
+
+    public:
+        ZMalloc() noexcept;
+        ~ZMalloc() noexcept;
+
+        [[nodiscard]] void* zmalloc (std::uint64_t size) noexcept;
+                      void zfree(void* ptr) noexcept;
+        [[nodiscard]] void* zrealloc (void* ptr, std::uint64_t size) noexcept;
+
+    };
+
+
 } // namespace zerok
