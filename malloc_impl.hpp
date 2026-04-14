@@ -70,15 +70,15 @@ namespace zerok {
     // header/footer
     [[nodiscard]]
     inline void* hdrptr (void* bptr) noexcept {
-        return static_cast<std::uint8_t*>(bptr) - HEADER_SIZE;
+        return static_cast<std::uint8_t*>(bptr) - config::HEADER_SIZE;
     }
 
     [[nodiscard]] 
     inline void* ftrptr (void* bptr) noexcept {
         return static_cast<std::uint8_t*>(bptr) 
                             + get_size(hdrptr(bptr))
-                            - HEADER_SIZE 
-                            - FOOTER_SIZE;
+                            - config::HEADER_SIZE 
+                            - config::FOOTER_SIZE;
     }
     
 
@@ -92,8 +92,8 @@ namespace zerok {
     [[nodiscard]] 
     inline void* prev_block (void* bptr) noexcept {
         void* prev_ptr = static_cast<std::uint8_t*>(bptr) 
-                                      - HEADER_SIZE 
-                                      - FOOTER_SIZE;
+                                      - config::HEADER_SIZE 
+                                      - config::FOOTER_SIZE;
 
         return static_cast<std::uint8_t*>(bptr)
                             - get_size(prev_ptr);
