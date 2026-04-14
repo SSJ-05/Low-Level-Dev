@@ -104,20 +104,22 @@ namespace zerok {
     class ZMalloc {
         HeapStats heap_;
 
-        void* extend_heap (std::uint64_t size) noexcept;
-        void* find_first_fit (std::uint64_t size) noexcept;
+        void* extend_heap (std::uint64_t size)             noexcept;
+        void* find_first_fit (std::uint64_t size)          noexcept;
         void  place_block (void* bptr, std::uint64_t size) noexcept;
         void* coalesce (void* bptr) noexcept;
 
     public:
-
-        [[nodiscard]] void* zmalloc (std::uint64_t size) noexcept;
-                      void zfree(void* ptr) noexcept;
+        ZMalloc();
+        ~ZMalloc();
+        [[nodiscard]] void* zmalloc (std::uint64_t size)             noexcept;
+                      void zfree(void* ptr)                          noexcept;
         [[nodiscard]] void* zrealloc (void* ptr, std::uint64_t size) noexcept;
 
+    }; // class ZMalloc
 
         // ***** ctor *****
-        ZMalloc() noexcept {
+        ZMalloc::ZMalloc() noexcept {
             void* mem = mmap (
                             nullptr,                            // kernel chooses addr
                             config::HEAP_INIT,                  // 16KB init heap
@@ -181,12 +183,11 @@ namespace zerok {
 
 
         // ***** dtor *****
-        ~ZMalloc() noexcept {
+        ZMalloc::~ZMalloc() noexcept {
             if (heap_.start) 
                 munmap (heap_.start, heap_.capacity);
         }
 
-    }; // class ZMalloc
 
 
 } // namespace zerok
