@@ -182,7 +182,14 @@ namespace zerok {
 
         }   // ZMalloc ctor
 
-    };
+
+        // ***** dtor *****
+        ~ZMalloc() noexcept {
+            if (heap_.start) 
+                munmap (heap_.start, heap_.capacity);
+        }
+
+    }; // class ZMalloc
 
 
 } // namespace zerok
