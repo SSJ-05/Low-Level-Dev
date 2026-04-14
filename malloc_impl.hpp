@@ -29,7 +29,7 @@ namespace zerok {
         std::uint64_t capacity  { 0 };
         std::uint64_t used      { 0 };
 
-        HeapStats                               = default;
+        HeapStats()                             = default;
         HeapStats (const HeapStats&)            = delete;
         HeapStats& operator=(const HeapStats&)  = delete;
         HeapStats (HeapStats&&)                 = delete;
@@ -91,12 +91,11 @@ namespace zerok {
 
     [[nodiscard]] 
     inline void* prev_block (void* bptr) noexcept {
-        void* prev_ptr = static_cast<std::uint8_t*>(bptr) 
+        void* prev_ftr = static_cast<std::uint8_t*>(bptr) 
                                       - config::HEADER_SIZE 
-                                      - config::FOOTER_SIZE;
 
         return static_cast<std::uint8_t*>(bptr)
-                            - get_size(prev_ptr);
+                            - get_size(prev_ftr);
     }
 
 
@@ -111,8 +110,6 @@ namespace zerok {
         void* coalesce (void* bptr) noexcept;
 
     public:
-        ZMalloc() noexcept;
-        ~ZMalloc() noexcept;
 
         [[nodiscard]] void* zmalloc (std::uint64_t size) noexcept;
                       void zfree(void* ptr) noexcept;
