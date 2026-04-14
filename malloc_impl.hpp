@@ -1,18 +1,15 @@
 // malloc package implementation// 12.04.26// ZeroK
 
-
-
 #pragma once
-
 
 #include <cstdlib>
 #include <cstddef>
 #include <cstdint>
+#include <cassert>
 #include <sys/mman.h>
 #include <unistd.h>
 
 namespace zerok {
-
 
     // ***** constants *****
     namespace config {
@@ -37,17 +34,70 @@ namespace zerok {
         HeapStats& operator=(const HeapStats&)  = delete;
         HeapStats (HeapStats&&)                 = delete;
         HeapStats& operator=(HeapStats&&)       = delete;
-    };    // struct HeapStats
+    };
 
-    class zmalloc;
-    class zfree;
 
-    class zmalloc {
+    // alignment
+    [[nodiscard]]
+    constexpr std::uint64_t align_up (std::uint64_t size, std::uint64_t alignment) noexcept {
+        return (size + alignment - 1) & ~(alignment - 1);     
+    }
 
-    };  // class zmalloc
 
-    class zfree {
+    // pack/unpack
+    [[nodiscard]]
+    constexpr std::uint64_t pack (std::uint64_t size, std::uint64_t alloc) noexcept {
+        return (size | alloc);
+    }
 
-    };  // class zfree
+
+    // getters for size and alloc
+    [[nodiscard]]
+    inline constexpr std::uint64_t get_size (void* p) noexcept {
+        std::uint64_t val;
+        __builtin_memcpy(&val, p, sizeof(val));
+        return val & ~std::uint64_t{0xF};
+    }
+
+    [[nodiscard]]
+    inline constexpr std::uint64_t get_alloc (void* p) noexcept {
+        std::uint64_t val;
+        __builtin_memcpy(&val, p, sizeof(val));
+        return val & std::uint64_t{0x1};
+    }
+
+
+    // header/footer
+    [[nodiscard]]
+    inline void* hdrptr (void* bptr) noexcept {
+        return static_cast<std::uint8_t*>(bptr) - HEADER_SIZE;
+    }
+
+    [[nodiscard]] 
+    inline void* ftrptr (void* bptr) noexcept {
+        return static_cast<std::uint8_t*>(bptr) 
+                            + get_size(hdrptr(bptr))
+                            - HEADER_SIZE 
+                            - FOOTER_SIZE;
+    }
+    
+
+    // next/prev block
+    [[nodiscard]]
+    inline void* next_block (void* bptr) noexcept {
+        return static_cast<std::uint8_t*>(bptr) 
+                            + get_size(hdrptr(bptr));
+    }
+
+    [[nodiscard]] 
+    inline void* prev_block (void* bptr) noexcept {
+        void* prev_ptr = static_cast<std::uint8_t*>(bptr) 
+                                      - HEADER_SIZE 
+                                      - FOOTER_SIZE;
+
+        return static_cast<std::uint8_t*>(bptr)
+                            - get_size(prev_ptr);
+    }
+
 
 } // namespace zerok
