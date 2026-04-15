@@ -21,12 +21,12 @@ private:
     
     // cold data - on separate cache line - avoid false sharing
     std::size_t size_;
-    std::uint8_t* memory_;
+    std::byte* memory_;
 
 public:
     explicit Arena (std::size_t size) noexcept : size_(size) {
         // Hugepage backed and lock memory
-        memory_ = static_cast<uint8_t*>(mmap (  nullptr, size,
+        memory_ = static_cast<std::byte*>(mmap (  nullptr, size,
                                                 PROT_READ | PROT_WRITE, 
                                                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
                                                 -1, 0));
@@ -61,7 +61,8 @@ public:
     }
 
     // no exceptions allocation, with default cache line 64 bytes
-    [[nodiscard]] void* allocate(std::size_t size, std::size_t alignment = 64) noexcept {
+    [[nodiscard]]
+    std::byte* allocate (std::size_t size, std::size_t alignment = 64) noexcept {
         uintptr_t current = reinterpret_cast<uintptr_t>(memory_ + offset_);
         uintptr_t aligned = (current + alignment - 1) & ~(alignment - 1);
         std::size_t padding = aligned - current;
@@ -69,7 +70,7 @@ public:
         if (offset_ + padding + size >  size_) return nullptr;
 
         offset_ += padding;
-        void* ptr = memory_ + offset_;
+        std::byte* ptr = memory_ + offset_;
         offset_ += size;
         return ptr;
     }
@@ -77,7 +78,7 @@ public:
     // create order
     template<typename T, typename... Args>
     T* create_order(Args&&... args) noexcept (std::is_nothrow_constructible_v<T, Args...>) {
-        void* ptr = allocate(sizeof(T), alignof(T));
+        std::byte* ptr = allocate(sizeof(T), alignof(T));
         if (!ptr) return nullptr;
         return new (ptr) T(std::forward<Args>(args)...);
     }
