@@ -284,7 +284,23 @@ namespace zerok {
     // ***** realloc() *****
     [[nodiscard]]
     void* ZMalloc::zrealloc (void* ptr, std::uint64_t size) noexcept {
-        
+        if (ptr == nullptr) return ZMalloc::zmalloc(nsize);
+
+        if (nsize == 0) {
+            ZMalloc::zfree(ptr);
+            return nullptr;
+        }
+
+        std::uint64_t osize = get_size(hdrptr(ptr));
+        if (nsize <= osize) return ptr;     // lazy shrink
+                                            
+        void* nptr = ZMalloc::zmalloc(nsize);
+        if (!nptr) return nullptr;
+
+        memcpy (nptr, ptr, osize);
+        zfree(ptr);
+
+        return nptr;
     }
     
 }   // namespace zerok
