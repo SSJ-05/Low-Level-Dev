@@ -6,6 +6,22 @@
 
 namespace zerok {
 
+/*
+** block layout (implicit list)
+
+** allocated block:
+[ header | payload | footer ]
+
+** free block (future explicit list):
+[ header | next | prev | unused | footer ]
+
+** header/footer format:
+size | alloc_bit
+
+** lowest bit = allocation flag
+** remaining bits = block size
+*/
+
     // ***** constants *****
     namespace config {
         constexpr std::uint64_t ALIGNMENT       { 16 };
