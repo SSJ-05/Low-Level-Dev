@@ -1,7 +1,10 @@
 // malloc package cpp file// 14.04.26// ZeroK
 
 #include "zmalloc.hpp"
-#include <sys/mman.h>
+#include <sys/mman.h>   // for mmap, munmap
+#include <unistd.h>     // for sysconf
+#include <cstddef>      // for std::byte
+#include <cstring>      // for memcpy
 
 namespace zerok {
 
