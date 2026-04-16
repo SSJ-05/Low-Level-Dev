@@ -61,66 +61,64 @@ size | alloc_bit
     };
 
 
+
+    namespace detail {
+
     // alignment
-    [[nodiscard]]
     inline constexpr std::uint64_t align_up (std::uint64_t size, std::uint64_t alignment) noexcept {
         return (size + alignment - 1) & ~(alignment - 1);     
     }
 
-
-    // pack/unpack
-    [[nodiscard]]
+    // lower bit stores alloc flag
     inline constexpr std::uint64_t pack (std::uint64_t size, std::uint64_t alloc) noexcept {
         return (size | alloc);
     }
-
 
     // getters for size and alloc
     [[nodiscard]]
     inline std::uint64_t get_size (void* p) noexcept {
         std::uint64_t val;
         __builtin_memcpy(&val, p, sizeof(val));
-        return val & ~std::uint64_t{0xF};
+        return val & config::SIZE_MASK;
     }
 
     [[nodiscard]]
-    inline std::uint64_t get_alloc (void* p) noexcept {
+    inline bool is_alloc (void* p) noexcept {
         std::uint64_t val;
         __builtin_memcpy(&val, p, sizeof(val));
-        return val & std::uint64_t{0x1};
+        return val & config::ALLOC_MASK;
     }
 
+    // header/footer - ptrs to payload region
+    inline void* header_ptr (void* bptr) noexcept {
+        return static_cast<std::byte*>(bptr) - config::HEADER_SIZE;
+    }
 
-    // header/footer
-    [[nodiscard]]
-    inline void* hdrptr (void* bptr) noexcept {
-        return static_cast<std::uint8_t*>(bptr) - config::HEADER_SIZE;
-     }
-
-    [[nodiscard]] 
-    inline void* ftrptr (void* bptr) noexcept {
-            return static_cast<std::uint8_t*>(bptr) 
-                + get_size(hdrptr(bptr))
+    inline void* footer_ptr (void* bptr) noexcept {
+            return static_cast<std::byte*>(bptr) 
+                + get_size(header_ptr(bptr))
                 - config::HEADER_SIZE 
                 - config::FOOTER_SIZE;
-     }
-
+    }
 
     // next/prev block
-    [[nodiscard]]
     inline void* next_block (void* bptr) noexcept {
-            return static_cast<std::uint8_t*>(bptr) 
-                + get_size(hdrptr(bptr));
+            return static_cast<std::byte*>(bptr) 
+                + get_size(header_ptr(bptr));
     }
 
-    [[nodiscard]] 
+    // safe: prologue block always allocated
     inline void* prev_block (void* bptr) noexcept {
-            void* prev_ftr = static_cast<std::uint8_t*>(bptr) 
-                               - config::HEADER_SIZE 
+            void* prev_ftr = static_cast<std::byte*>(bptr) 
+                               - config::HEADER_SIZE; 
 
-            return static_cast<std::uint8_t*>(bptr)
+            return static_cast<std::byte*>(bptr)
                      - get_size(prev_ftr);
     }
+
+    } // namespace detail
+
+ 
 
 
     // single instance malloc class
