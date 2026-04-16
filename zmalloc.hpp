@@ -27,7 +27,15 @@ size | alloc_bit
         constexpr std::uint64_t ALIGNMENT       { 16 };
         constexpr std::uint64_t HEADER_SIZE     { sizeof(std::uint64_t) };
         constexpr std::uint64_t FOOTER_SIZE     { sizeof(std::uint64_t) };
-        constexpr std::uint64_t MIN_BLOCK_SIZE  { ALIGNMENT + HEADER_SIZE + FOOTER_SIZE };
+        constexpr std::uint64_t MIN_BLOCK_SIZE  { 
+                                                      (
+                                                        HEADER_SIZE         // header
+                                                        + sizeof(void*)     // next
+                                                        + sizeof(void*)     // prev
+                                                        + FOOTER_SIZE       // footer
+                                                        + ALIGNMENT - 1 
+                                                      ) & ~(ALIGNMENT - 1)
+                                                };
         constexpr std::uint64_t HEAP_INIT       { 4 * 4096 };     // 16KB initial size of Heap
         constexpr std::uint64_t HEAP_MAX        { 1ull << 30 };   // 1GB size limit of Heap
     }   // namespace config
