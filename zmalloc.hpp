@@ -43,15 +43,15 @@ size | alloc_bit
         constexpr std::uint64_t ALIGN_MASK      { ALIGNMENT - 1 };
         constexpr std::uint64_t SIZE_MASK       { ~ALIGN_MASK };
         constexpr std::uint64_t ALLOC_MASK      { 0x1 };
+                                                 
     }   // namespace config
 
 
     // ***** Heap Stats struct *****
     struct HeapStats {
-        std::uint8_t* start     { nullptr };
-        std::uint8_t* end       { nullptr };
-        std::uint64_t capacity  { 0 };
-        std::uint64_t used      { 0 };
+        std::byte* start        {};
+        std::byte* end          {};
+        std::uint64_t capacity  {};
 
         HeapStats()                             = default;
         HeapStats (const HeapStats&)            = delete;
