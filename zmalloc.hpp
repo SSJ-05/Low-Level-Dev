@@ -36,8 +36,13 @@ size | alloc_bit
                                                         + ALIGNMENT - 1 
                                                       ) & ~(ALIGNMENT - 1)
                                                 };
+        
         constexpr std::uint64_t HEAP_INIT       { 4 * 4096 };     // 16KB initial size of Heap
         constexpr std::uint64_t HEAP_MAX        { 1ull << 30 };   // 1GB size limit of Heap
+        
+        constexpr std::uint64_t ALIGN_MASK      { ALIGNMENT - 1 };
+        constexpr std::uint64_t SIZE_MASK       { ~ALIGN_MASK };
+        constexpr std::uint64_t ALLOC_MASK      { 0x1 };
     }   // namespace config
 
 
