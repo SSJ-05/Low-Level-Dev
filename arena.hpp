@@ -17,7 +17,7 @@ class Arena {
 private:
     // hot data - accessed on every allocate
     alignas(64) std::size_t  offset_ { 0uz };
-                std::uint8_t pad_[56];
+                std::byte    pad_[64 - sizeof(std::size_t)];
     
     // cold data - on separate cache line - avoid false sharing
                 std::size_t  size_;
@@ -65,11 +65,11 @@ public:
     // no exceptions allocation, with default cache line 64 bytes
     [[nodiscard]]
     std::byte* allocate (std::size_t size, std::size_t alignment = 64) noexcept {
-        uintptr_t current = reinterpret_cast<uintptr_t>(memory_ + offset_);
-        uintptr_t aligned = (current + alignment - 1) & ~(alignment - 1);
+        uintptr_t   current = reinterpret_cast<uintptr_t>(memory_ + offset_);
+        uintptr_t   aligned = (current + alignment - 1) & ~(alignment - 1);
         std::size_t padding = aligned - current;
 
-        if (offset_ + padding + size >  size_) return nullptr;
+        if (size > size_ - offset_ - padding) return nullptr;
 
         offset_ += padding;
         std::byte* ptr = memory_ + offset_;
@@ -89,11 +89,12 @@ public:
     // fault all pages into RAM 
     // call warm_cache() before hot path
     void touch_all_pages() noexcept {
-        constexpr std::size_t page_size = 2 * 1024 * 1024;   // pre-touch 2MB pages
-        volatile std::uint8_t* mem = memory_;
+        // constexpr std::size_t page_size = 2 * 1024 * 1024;   // pre-touch 2MB pages
+        constexpr std::size_t page_size = sysconf(_SC_PAGESIZE);
+                  std::byte*  mem       = memory_;
 
-        for (auto i {0uz}; i < size_; i += page_size) mem[i] = 0; 
-        (void) *mem;
+        for (auto i {0uz}; i < size_; i += page_size) 
+            mem[i] = std::byte {0}; 
     }
 
     // warm cache before hot path
