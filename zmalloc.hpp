@@ -155,11 +155,27 @@ free_list_head <-> free block <-> free block
  
 
     // ***** class ZMalloc *****
+    /*
+        explicit free list invariants
+        1. every free block appears exactly once in list
+        2. allocated blocks never appear in list
+        3. coalesced blocks reinserted into list
+        4. freelist_head may be nullptr
+        5. list is doubly-linked intrusive
+    */
+
+
     class ZMalloc {
         HeapStats heap_;
 
+        Freeblock* free_list_head { nullptr };
+        Freeblock* find_first_fit (std::uint64_t size)    noexcept;       // traverse only freelist
+        void       insert_free_block (Freeblock*)         noexcept;
+        void       remove_free_block (Freeblock*)         noexcept;
+
+    
+
         void* extend_heap (std::uint64_t size)              noexcept;
-        void* find_first_fit (std::uint64_t size)           noexcept;
         void* place_block (void* bptr, std::uint64_t size)  noexcept;
         void* coalesce (void* bptr)                         noexcept;
 
