@@ -8,20 +8,34 @@
 namespace zerok {
 
 /*
-** block layout (implicit list)
+## block layout (implicit list)
 
 ** allocated block:
 [ header | payload | footer ]
 
 ** free block (future explicit list):
-[ header | next | prev | unused | footer ]
+[ header | next_ptr | prev_ptr | unused payload space | footer ]
 
 ** header/footer format:
 size | alloc_bit
 
 ** lowest bit = allocation flag
 ** remaining bits = block size
+
+
+## block layout (explicit list)
+
+[prologue]
+[free block] -> linked list node
+[allocated block]
+[free block] -> linked list node
+[epilogue]
+
+** traversal becomes
+free_list_head <-> free block <-> free block
 */
+
+
 
     // ***** constants *****
     namespace config {
@@ -59,6 +73,14 @@ size | alloc_bit
         HeapStats& operator=(const HeapStats&)  = delete;
         HeapStats (HeapStats&&)                 = delete;
         HeapStats& operator=(HeapStats&&)       = delete;
+    };
+
+
+    // ***** Free block struct *****
+    // for explicit lists - chain only free blocks
+    struct Freeblock {
+        Freeblock* prev;
+        Freeblock* next;
     };
 
 
@@ -116,6 +138,8 @@ size | alloc_bit
             return static_cast<std::byte*>(bptr)
                      - get_size(prev_ftr);
     }
+
+
 
     } // namespace detail
 
