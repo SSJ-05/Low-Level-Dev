@@ -140,6 +140,15 @@ free_list_head <-> free block <-> free block
     }
 
 
+    // helper funcs to cast b/w payload ptr and Freeblock node
+    inline Freeblock* as_free_block (void* payload) noexcept {
+        return static_cast<Freeblock*> (payload);
+    }
+
+    inline void* as_payload (Freeblock* node) noexcept {
+        return static_cast<void*> (node);
+    }
+
 
     } // namespace detail
 
