@@ -61,3 +61,90 @@ EPILOGUE  - allocated block, size 0
             signals end of heap
             eliminates "is there a next block" check
 */
+
+/*
+
+EXPLICIT FREE LIST INVARIANTS
+
+STRUCTURAL INVARIANTS
+
+1. Every free block appears exactly once in the free list
+   (no duplicates, no lost blocks)
+
+2. Allocated blocks never appear in the free list
+
+3. free_list_head_ points to the first free block
+   or nullptr if no free blocks exist
+
+4. Free list is doubly-linked:
+
+       node->next->prev == node
+       node->prev->next == node
+
+5. prev pointer of head is always nullptr
+
+6. next pointer of last node is always nullptr
+
+
+MEMORY LAYOUT INVARIANTS
+
+7. Free block layout:
+
+   [ header | next | prev | unused | footer ]
+
+   next/prev pointers live inside payload region
+
+8. All blocks (allocated or free) satisfy:
+
+       block_size >= MIN_BLOCK_SIZE
+
+9. Block sizes always aligned to ALIGNMENT
+
+10. Header and footer of each block store identical size value
+
+
+COALESCING INVARIANTS
+
+11. No two adjacent free blocks exist in the heap
+
+       must coalesce immediately on free
+
+12. Coalesced blocks must be removed from free list
+    before merge and reinserted after merge
+
+13. Boundary tags must always reflect final merged size
+
+
+LIST CONSISTENCY INVARIANTS
+
+14. free_list_head_ must always point to valid free block
+    inside heap bounds
+
+15. Every free list node must lie inside heap range:
+
+       heap_.start <= node < heap_.end
+
+16. Free list must not form cycles
+
+17. Removing a block must correctly relink neighbors
+
+
+ALLOCATION INVARIANTS
+
+18. place_block must remove allocated block from free list
+
+19. splitting a block must:
+
+       remove original block
+       insert remainder block (if large enough)
+
+20. extend_heap must insert new block into free list
+    after coalescing
+
+
+DEBUGGING INVARIANT (MENTAL CHECK)
+
+21. Total heap memory must equal:
+
+       sum(allocated blocks) + sum(free blocks)
+*/
