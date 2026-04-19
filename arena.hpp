@@ -16,20 +16,22 @@
 class Arena {
 private:
     // hot data - accessed on every allocate
-    alignas(64) std::size_t offset_ { 0uz };
-    std::uint8_t pad_ [56];
+    alignas(64) std::size_t  offset_ { 0uz };
+                std::uint8_t pad_[56];
     
     // cold data - on separate cache line - avoid false sharing
-    std::size_t size_;
-    std::byte* memory_;
+                std::size_t  size_;
+                std::byte*   memory_;
 
 public:
     explicit Arena (std::size_t size) noexcept : size_(size) {
         // Hugepage backed and lock memory
-        memory_ = static_cast<std::byte*>(mmap (  nullptr, size,
-                                                PROT_READ | PROT_WRITE, 
-                                                MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
-                                                -1, 0));
+        memory_ = static_cast<std::byte*>( mmap (   nullptr, size,
+                                                    PROT_READ | PROT_WRITE, 
+                                                    MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
+                                                    -1, 0
+                                                )
+                                         );
 
         // fallback to normal pages and lock memory
         if (memory_ == MAP_FAILED) {
@@ -97,9 +99,9 @@ public:
     // warm cache before hot path
     // L1 residency
     void warm_cache() noexcept {
-        constexpr std::size_t CL { 64 };     // 64 stride Cache Line
-        constexpr std::size_t PD { CL * 8 }; // Prefetch Distance
-        volatile std::uint8_t sink { 0 };    // prevent compiler from optimizing
+        constexpr std::size_t  CL   { 64 };     // 64 stride Cache Line
+        constexpr std::size_t  PD   { CL * 8 }; // Prefetch Distance
+        volatile  std::uint8_t sink { 0 };      // prevent compiler from optimizing
 
         // prefetch + read
         for (auto i {0uz}; i < size_; i += CL) {
@@ -113,15 +115,15 @@ public:
     void reset() noexcept { offset_ = 0; }
 
     // statistics
-    std::size_t used() const noexcept { return offset_; }
-    std::size_t available() const noexcept { return size_ - offset_; }
-    std::size_t capacity() const noexcept { return size_; }
+    std::size_t used()        const noexcept { return offset_; }
+    std::size_t available()   const noexcept { return size_ - offset_; }
+    std::size_t capacity()    const noexcept { return size_; }
 
     // prevent copying/moving
-    Arena (const Arena&) = delete;
-    Arena& operator=(const Arena&) = delete;
-    Arena (Arena&&) noexcept = delete;
-    Arena& operator=(Arena&&) noexcept = delete;
+    Arena (const Arena&)                 = delete;
+    Arena& operator=(const Arena&)       = delete;
+    Arena (Arena&&)                      = delete;
+    Arena& operator=(Arena&&)            = delete;
 };
 
 // first run this in CLI to preallocate '20' hugepages: sudo sh -c 'echo 20 > /proc/sys/vm/nr_hugepages'
