@@ -165,6 +165,23 @@ free_list_head <-> free block <-> free block
     */
 
 
+     /*
+        Segregated Lists invariants
+        1. each free block belongs to exactly one bin
+        2. bin index determined solely by block size
+        3. bins contain only free blocks
+        4. bin heads may be nullptr
+        5. bin index must satisfy: idx = bin_index(block_size)
+        6. coalescing may change bin membership
+        7. splitting creates remainder block which must be inserted into correct bin
+        8. allocation removes block from its bin
+        9. bins are independent linked lists
+        10. searching begins from ideal bin and may continue to larger bins
+        11. explicit list invariants apply inside each bin
+    */
+
+
+
      class ZMalloc {
         HeapStats heap_;
 
