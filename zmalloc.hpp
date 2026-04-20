@@ -164,7 +164,6 @@ free_list_head <-> free block <-> free block
 
  
 
-    // ***** class ZMalloc *****
     /*
         explicit free list invariants
         1. every free block appears exactly once in list
@@ -191,7 +190,7 @@ free_list_head <-> free block <-> free block
     */
 
 
-
+    // ***** class ZMalloc *****
      class ZMalloc {
         HeapStats heap_;
 
