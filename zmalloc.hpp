@@ -165,19 +165,21 @@ free_list_head <-> free block <-> free block
     */
 
 
-    class ZMalloc {
+     class ZMalloc {
         HeapStats heap_;
 
-        Freeblock* free_list_head { nullptr };
+        static constexpr std::uint8_t NUM_OF_BINS_ { 16 };
+        Freeblock* bins_[NUM_OF_BINS_] {};
+
         Freeblock* find_first_fit (std::uint64_t size)    noexcept;       // traverse only freelist
         void       insert_free_block (Freeblock*)         noexcept;
         void       remove_free_block (Freeblock*)         noexcept;
 
-    
 
-        void* extend_heap (std::uint64_t size)              noexcept;
-        void* place_block (void* bptr, std::uint64_t size)  noexcept;
-        void* coalesce (void* bptr)                         noexcept;
+        void*         extend_heap (std::uint64_t size)              noexcept;
+        void*         place_block (void* bptr, std::uint64_t size)  noexcept;
+        void*         coalesce (void* bptr)                         noexcept;
+        std::uint64_t bin_index (std::uint64_t size)         const  noexcept;
 
     public:
         ZMalloc()  noexcept;
@@ -186,7 +188,7 @@ free_list_head <-> free block <-> free block
         [[nodiscard]] void* zmalloc (std::uint64_t size)             noexcept;
                       void  zfree (void* ptr)                        noexcept;
         [[nodiscard]] void* zrealloc (void* ptr, std::uint64_t size) noexcept;
-
     };  // class ZMalloc
+
 
 } // namespace zerok
