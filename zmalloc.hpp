@@ -150,6 +150,16 @@ free_list_head <-> free block <-> free block
     }
 
 
+     inline void write_header_footer (void* bptr, std::uint64_t size, std::uint64_t alloc) noexcept {
+            __builtin_memcpy(  detail::header_ptr(bptr),
+                               &(const std::uint64_t&) { detail::pack(size, alloc) },
+                               config::HEADER_SIZE );
+        
+            __builtin_memcpy(  detail::footer_ptr(bptr),
+                               &(const std::uint64_t&) { detail::pack(size, alloc) },
+                               config::FOOTER_SIZE );
+    }
+
     } // namespace detail
 
  
