@@ -7,14 +7,16 @@
 
 // thread pinning helper func
 void pin_thread (int cpu_id) {
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(cpu_id, &cpuset);
+    cpu_set_t   cpuset;
+    CPU_ZERO   (&cpuset);
+    CPU_SET    (cpu_id, &cpuset);
 
-    int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+    int rc = pthread_setaffinity_np(pthread_self(), 
+                sizeof(cpu_set_t), 
+                &cpuset);
 
     if (rc != 0) {
-        perror("Error: pthread_setaffinity_np\n");
+        perror ("Error: pthread_setaffinity_np\n");
         std::terminate();
     }
 }
